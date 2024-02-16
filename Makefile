@@ -1,18 +1,38 @@
-ingress:
-	oc apply -f ingress-controllers.yaml
-
-DOMAIN1 ?= test1.dustinscott.io
-DOMAIN2 ?= test2.dustinscott.io
-
 # NOTE: please review article https://access.redhat.com/solutions/5097511
 
 #
-# test apps
+# variables
 #
+DOMAIN1 ?= test1.dustinscott.io
+DOMAIN2 ?= test2.dustinscott.io
 APP1 ?= test1
 APP2 ?= test2
 APP_IMAGE ?= mendhak/http-https-echo
 APP_HOSTNAME ?= test
+
+#
+# routers
+#
+
+# create the sharded routers for my domains
+shard:
+	oc apply -f ingress-controllers.yaml
+
+# disallow the default router from my sharded apps
+shard-default:
+	oc -n openshift-ingress-operator patch ingresscontroller default \
+		--type='json' \
+		-p='[{"op": "replace", "path": "/spec/namespaceSelector", "value": {"matchExpressions": [{"key": "kubernetes.io/metadata.name", "operator": "NotIn", "values": ["$(APP1)", "$(APP2)"]}]}}]'
+
+# return the default router to its default settings
+default:
+	oc -n openshift-ingress-operator patch ingresscontroller default \
+		--type='json' \
+		-p='[{"op": "remove", "path": "/spec/namespaceSelector"}]'
+
+#
+# test apps
+#
 app1:
 	oc create ns $(APP1) --dry-run=client -o yaml | oc apply -f- && \
 		oc project $(APP1) && \
