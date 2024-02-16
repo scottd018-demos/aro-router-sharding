@@ -1,0 +1,31 @@
+apiVersion: operator.openshift.io/v1
+kind: IngressController
+metadata:
+  name: test1
+  namespace: openshift-ingress-operator
+spec:
+  domain: test1.dustinscott.io
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: test1
+  endpointPublishingStrategy:
+    loadBalancer:
+      scope: External
+      dnsManagementPolicy: Unmanaged
+    type: LoadBalancerService
+---
+apiVersion: operator.openshift.io/v1
+kind: IngressController
+metadata:
+  name: test2
+  namespace: openshift-ingress-operator
+spec:
+  domain: test2.dustinscott.io
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: test2
+  endpointPublishingStrategy:
+    loadBalancer:
+      scope: External
+      dnsManagementPolicy: Unmanaged
+    type: LoadBalancerService
